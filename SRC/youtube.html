@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>youtube downloader website by Leonard Tech, tech info...</title>
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/leonard1tech/Leonard-MD-Download-/refs/heads/main/IMAGES/images%20(1).png" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+      background: #000;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: #00d9ff;
+      margin-bottom: 1rem;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #111;
+      border-radius: 25px;
+      padding: 8px 12px;
+      max-width: 600px;
+      margin: 0 auto;
+      height: 30px;
+    }
+
+    .material-icons {
+      font-size: 22px;
+    }
+
+    .back-arrow {
+      color: #ccc;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .icon-button {
+      background-color: #222;
+      border-radius: 50%;
+      width: 46px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+
+    .icon-button:hover {
+      background-color: #333;
+    }
+
+    .results {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card {
+      background: #111;
+      border-radius: 8px;
+      padding: 0.5rem;
+      text-align: left;
+      font-size: 0.85rem;
+      position: relative;
+    }
+
+    .card img {
+      width: 100%;
+      border-radius: 4px;
+    }
+
+    .meta p {
+      margin: 3px 0;
+      color: #ccc;
+    }
+
+    .actions {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .actions button {
+      background: #00d9ff;
+      color: #000;
+      padding: 0.3rem 0.6rem;
+      font-weight: bold;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .error {
+      color: #ff5555;
+      background: #220000;
+      border-radius: 6px;
+      padding: 0.4rem;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .loading {
+      font-size: 0.8rem;
+      color: #00d9ff;
+      margin-top: 5px;
+    }
+
+    .video-player {
+      margin-top: 10px;
+    }
+
+    .video-player video {
+      width: 100%;
+      border-radius: 16px;
+      outline: none;
+      background: #000;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Leonard Tech yt downloader</h1>
+
+  <div class="search-container">
+    <span class="material-icons back-arrow" onclick="window.location.href='https://joel-xmd-downloader.vercel.app/youtube'">arrow_back</span>
+    <input class="search-input" id="query" placeholder="Enter search term or YouTube url" />
+    <div class="icon-button" onclick="searchVideos()" title="Search">
+      <span class="material-icons">search</span>
+    </div>
+    <div class="icon-button" onclick="searchVideos()" title="Voice (not active)">
+      <span class="material-icons">mic</span>
+    </div>
+  </div>
+
+  <div class="error" id="error"></div>
+  <div class="results" id="results"></div>
+
+  <script>
+    const input = document.getElementById("query");
+    const results = document.getElementById("results");
+    const error = document.getElementById("error");
+
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") searchVideos();
+    });
+
+    window.onload = () => input.focus();
+
+    async function searchVideos() {
+      const query = input.value.trim();
+      results.innerHTML = '';
+      error.textContent = '';
+
+      if (!query) {
+        error.textContent = "❌ Enter search term or YouTube url.";
+        return;
+      }
+
+      const loading = document.createElement("div");
+      loading.className = "loading";
+      loading.textContent = "Processing...";
+      results.appendChild(loading);
+
+      try {
+        const api = `https://corsproxy.io/?${encodeURIComponent(`https://my-rest-apis-six.vercel.app/yts?query=${encodeURIComponent(query)}`)}`;
+        const res = await fetch(api);
+        const json = await res.json();
+        results.innerHTML = '';
+
+        if (!json.results || !json.results.length) {
+          error.textContent = "❌ No results found.";
+          return;
+        }
+
+        json.results.forEach(video => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <img src="${video.thumbnail}" alt="${video.title}">
+            <div class="meta">
+              <p><strong>${video.title}</strong></p>
+              <p>${video.author}</p>
+              <p>${video.duration}</p>
+            </div>
+            <div class="actions">
+              <button onclick="downloadMedia('${video.url}', 'mp3', this)">Download MP3</button>
+              <button onclick="downloadMedia('${video.url}', 'mp4', this)">Download MP4</button>
+            </div>
+            <div class="video-player"></div>
+          `;
+          results.appendChild(card);
+        });
+      } catch (e) {
+        console.error(e);
+        error.textContent = "❌ Failed to fetch videos.";
+      }
+    }
+
+    async function downloadMedia(url, format, button) {
+      const card = button.closest('.card');
+      const loading = document.createElement("div");
+      loading.className = "loading";
+      loading.textContent = "Preparing download...";
+      card.appendChild(loading);
+      button.disabled = true;
+
+      try {
+        const apiURL = `https://corsproxy.io/?${encodeURIComponent(`https://iamtkm.vercel.app/downloaders/yt${format}?url=${encodeURIComponent(url)}`)}`;
+        const res = await fetch(apiURL);
+        const json = await res.json();
+
+        if (json?.data?.url) {
+          // Use hidden <a> to trigger download/open inside WebView without opening external Chrome
+          const a = document.createElement("a");
+          a.href = json.data.url;
+          a.download = ""; // Suggest download
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          alert("Failed to get download link.");
+        }
+      } catch {
+        alert("Download failed.");
+      } finally {
+        loading.remove();
+        button.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
